@@ -1,0 +1,183 @@
+*
+{
+    margin: 0px;
+    padding: 0px;
+    font-family: Arial;
+}
+
+.form-control
+{
+    padding: 20px;
+}
+
+header
+{
+    background-color: #2062AD;
+    color: #ffffff;
+    width: 100%;
+    height: 9vh;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    position: fixed;
+    box-shadow: 0px 5px 22px 2px rgba(242,211,56,0.9);
+    -webkit-box-shadow: 0px 5px 22px 2px rgba(242,211,56,0.9);
+    -moz-box-shadow: 0px 5px 22px 2px rgba(242, 211, 56, 0.9);
+}
+
+main
+{
+    padding-top: 9vh;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#div-header
+{
+    width: 100%;
+    height: 9vh;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: fixed;
+}
+
+#div-item h1
+{
+    font-size: 1.5rem;
+    text-align: center;
+    font-weight: bold;
+}
+
+#logo-cimol
+{
+    width: 100%;
+}
+
+/*  |  login-section | */
+.section-main
+{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.div-title
+{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.section-title
+{
+    width: 100%;
+    text-align: center;
+    font-size: 3.5rem;
+    margin: 7% 0% 5% 0%;
+    padding: 0px;
+    font-weight: bold;
+}
+
+.section-main p
+{
+    width: 90%;
+    text-align: center;
+    font-size: 1.8rem;
+}
+
+.form-conteiner
+{
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form-label
+{
+    width: 100%;
+    font-size: 1.8rem;
+}
+
+.input-lg
+{
+    font-size: 1.8rem;
+}
+
+.btn{
+    margin-top: 5%;
+}
+
+
+.disabled
+{
+    display: none;
+}
+
+.enable
+{
+    display: flex;
+}
+
+@media only screen and (min-width: 1024px) 
+{
+    /*  |  MAIN | */
+    main
+    {
+        padding-top: 15vh;
+    }
+
+    /*  |  HEADER | */
+    header
+    {
+        height: 15vh;
+        align-content: center;
+    }
+
+    #div-header
+    {
+        height: 15vh;
+    }
+
+    #div-item h1
+    {
+        font-size: 2.5rem;
+    }
+
+    #logo-cimol
+    {
+        width: 100%;
+    }
+}
+
+@media only screen and (max-height: 769px) 
+{
+    .list-item
+    {
+        padding: 0.5% 0% 0.5% 5%;
+    }
+
+    .item-main
+    {
+        margin-top: 1%;
+    }
+
+    #content-text h1
+    {
+        font-size: 3rem;
+    }
+
+    #content-text p
+    {
+        font-size: 1.8rem;
+    }
+
+}
+
+@media only screen and (min-height: 900px) 
+{
+}
