@@ -11,11 +11,40 @@ db.transaction(
     }
 )
 
+let permissions = {
+    'Administrador': [
+        'Alunos', 
+        'Professores', 
+        'Horários', 
+        'Cursos'
+    ],
+
+    'Professor': [
+        'Horários', 
+        'Armarios', 
+        'Patrimonios', 
+        'Alunos', 
+        'Professores'
+    ],
+
+    'Aluno': [
+        'Curriculo', 
+        'Horários', 
+        'Oportunidades'
+    ],
+
+    'Biblioteca': [
+        'Editoras', 
+        'Autores', 
+        'Obras'
+    ]
+}
+
 const loginForm = Vue.component('login-section', 
     {
         template: 
         `
-            <section class='section-main' v-if='showLogin == true'>
+            <div class='component-dad' v-if='this.$root.showLogin == true'>
                 <div class='div-title'>
                     <h1 class='section-title'>Conectar-se</h1>
                     <p>Para realizar diversas ações em nossa plataforma você precisa estar conectado a uma conta, realize sua conexão abaixo.</p>
@@ -32,18 +61,16 @@ const loginForm = Vue.component('login-section',
                     </div>
                     <button @click='conect' type='button' class='btn btn-primary btn-lg'>Conectar-se</button>
                 </form>
-            </section>
+            </div>
         `,
         methods: {
             //81dc9bdb52d04dc20036dbd8313ed055 - 1234
             async conect()
             {
-                let vm = this;
                 const email = document.getElementById('input-email-lg').value;
                 const senha = document.getElementById('input-senha-lg').value;
 
                 const hashSenha = await md5(senha);
-                console.log(hashSenha);
 
                 const config = {
                     method: 'POST',
@@ -68,6 +95,7 @@ const loginForm = Vue.component('login-section',
                             nome: res.user.nome,
                             email: res.user.email,
                             token: res.token,
+                            idUser: res.user.id,
                             profiles: [],
                         }
                         let text = ['Admin', 'Aluno', 'Professor']
@@ -86,25 +114,105 @@ const loginForm = Vue.component('login-section',
                             $('#select-profile-modal').modal('show');
                         }else
                         {
+                            this.$root.showLogin = false;
+                            this.$root.showProfile = true;
                             this.showLogin = false;
                         }
-
-                        this.showLogin = false;
-                        eventBus.$emit('submit', user)
+                        document.getElementById('permissions-list').classList.remove('disabled');
+                        document.getElementById('permissions-list').classList.add('enable');
+                        this.$root.user = user;
                     }
                 )
-            }
-        },
-        data()
-        {
-            return {
-                showLogin: true
             }
         }
     }
 )
 
-var eventBus = new Vue({})
+const profileSection = Vue.component('profile-section',
+    {
+        template: 
+        `
+            <div>
+                <div v-if='this.$root.showProfile == true' id='div-h3'>
+                    <h3 id='profile-h3'> {{ this.$root.user.profiles[0] }} </h3>
+                </div>
+                <div v-if='this.$root.showProfile == true' v-model='showPermission()'>
+                    <ul class='list-perm'>
+                        <li class='list-perm-item' v-for='perm in permissions'><a :id='perm' @click='clickList' href='#' > {{ perm }} </a></li>
+                    </ul>
+                </div>
+            </div>
+        `,
+        data()
+        {
+            return {
+                permissions: {'':''}
+            }
+        },
+        methods: {
+            showPermission(){
+                let profilePermissions
+
+                if (this.$root.user.profiles[0] == 'Admin'){
+                    profilePermissions = permissions.Administrador;
+                }else if(this.$root.user.profiles[0] == 'Professor'){
+                    profilePermissions = permissions.Professor;
+                }else if(this.$root.user.profiles[0] == 'Aluno'){
+                    profilePermissions = permissions.Aluno;
+                }else if(this.$root.user.profiles[0] == 'Biblioteca'){
+                    profilePermissions = permissions.Biblioteca;
+                }
+    
+                this.permissions = profilePermissions
+            },
+            clickList()
+            {
+                console.log()
+                for (i=0; i<this.permissions.length; i++) 
+                {
+                    let a = document.getElementById(this.permissions[i])
+
+                    a.onclick = () =>
+                    {
+
+                        this.$root.showComponent[a.innerText] = true
+
+                        let height = window.innerHeight;
+                        let width = window.innerWidth;
+                        console.log(width);
+                        
+                        if (width < 1024){
+                            this.$root.showProfile = false
+                            document.getElementById('permissions-list').classList.remove('enable');
+                            document.getElementById('permissions-list').classList.add('disabled');
+                        }
+
+                        const config = {
+                            method: 'GET',
+                            mode: 'cors',
+                            cache: 'default',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-access-token': this.$root.user.token,
+                                'perfil': this.$root.user.profiles[0].toLowerCase(),
+                                'idUser': this.$root.user.idUser
+                            }
+                        }
+    
+                        fetch('http://127.0.0.1:3000/curso/', config)
+                        .then(resp => resp.json())
+                        .then(res =>{
+                            this.$root.cursos = res;
+                        })
+    
+                        console.log(this.$root.cursos)
+                    }
+                }
+                
+            }
+        }
+    }
+)
 
 const selectModal = Vue.component('select-profile',
     {
@@ -112,9 +220,9 @@ const selectModal = Vue.component('select-profile',
         `
             <div class='modal-body'>          
                 <div class='text'>
-                    <p>Olá {{ user.nome }}, selecione o usuario que deseja usar.</p>
+                    <p>Olá {{ this.$root.user.nome }}, selecione o usuario que deseja usar.</p>
                 </div>
-                <div v-for='profile in user.profiles'>
+                <div v-for='profile in this.$root.user.profiles'>
                     <input class='check-modal' type='checkbox' value=''>
                     <label for='check-modal' class='check-label'>{{ profile }}</label>
                 </div>
@@ -124,22 +232,10 @@ const selectModal = Vue.component('select-profile',
                 </div>
             </div>
         `,
-        created(){
-            let vm = this;
-            eventBus.$on('submit', 
-                function(user)
-                {
-                    if (user)
-                    {
-                        vm.user = user;
-                    }
-                }
-            )
-        },
         methods: {
             async logIn()
             {
-                let vm = this;
+                let user = this.$root.user;
                 let profile = '';
 
                 let inputs = document.querySelectorAll('input');
@@ -152,6 +248,7 @@ const selectModal = Vue.component('select-profile',
                         if (inputs[i].checked == true)
                         {
                             profile = labels[i].innerText
+
                             db.transaction(
                                 function(tx)
                                 {
@@ -161,7 +258,7 @@ const selectModal = Vue.component('select-profile',
                                             WHERE email = ?
                                         `,
                                         [
-                                            vm.user.email
+                                            user.email
                                         ],
                                         function(_,result)
                                         {
@@ -176,8 +273,8 @@ const selectModal = Vue.component('select-profile',
                                                     `,
                                                     [
                                                         profile,
-                                                        vm.user.token,
-                                                        vm.user.email
+                                                        user.token,
+                                                        user.email
                                                     ]
                                                 )
                                             }
@@ -190,68 +287,52 @@ const selectModal = Vue.component('select-profile',
                 }
 
                 $('#select-profile-modal').modal('hide');
-            }
-        },
-        data(){
-            return {
-                user: [],
+                this.$root.showLogin = false;
+                this.$root.showProfile = true;
             }
         }
     }
 )
 
+const sectionCursos = Vue.component('cursos-section',
+    {
+        template: 
+        `
+        <div class='component-dad'>
+            <div v-if='this.$root.showComponent.Cursos == true'>
+                <p v-for='curso in this.$root.cursos' style='font-size: 32px; width:100%;'>teste {{ curso }}</p>
+            </div>
+        </div>
+        `
+    }
+)
+
 const app = new Vue({
-    el: '#main-app'
+    el: '#main-app',
+    data: 
+    {
+        showLogin: true,
+        showProfile: false,
+        cursos: [],
+        showComponent: {
+            'Alunos': false, 
+            'Professores': false, 
+            'Horário': false, 
+            'Cursos': false,
+            'Armarios': false, 
+            'Patrimonio': false, 
+            'Curriculo': false, 
+            'Oportunidades': false,
+            'Editoras': false, 
+            'Autores': false, 
+            'Obras': false
+        },
+        user: {
+            nome: '',
+            email: '',
+            token: '',
+            idUser: '',
+            profiles: [''],
+        }
+    }
 })
-
-function show()
-{
-    db.transaction(
-        function(tx)
-        {
-            tx.executeSql(
-                `
-                    SELECT * FROM profileInfos;
-                `,
-                [],
-                function(e,result)
-                {
-                    console.log(result.rows);
-                }
-            )
-        }
-    )
-}
-
-function insert(email,token,name,profile)
-{
-    db.transaction(
-        function(tx)
-        {
-            tx.executeSql(
-                `
-                    INSERT INTO profileInfos 
-                    (
-                        email,
-                        token,
-                        name,
-                        profile
-                    ) 
-                    VALUES
-                    (
-                        ?,
-                        ?,
-                        ?,
-                        ?
-                    )                        
-                `,
-                [
-                    email,
-                    token,
-                    name,
-                    profile
-                ]
-            )
-        }
-    )
-}
